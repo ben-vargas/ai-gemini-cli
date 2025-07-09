@@ -41,6 +41,10 @@ export interface Settings {
   theme?: string;
   selectedAuthType?: AuthType;
   sandbox?: boolean | string;
+  proxy?: {
+    url?: string;
+    headers?: Record<string, string>;
+  };
   coreTools?: string[];
   excludeTools?: string[];
   toolDiscoveryCommand?: string;

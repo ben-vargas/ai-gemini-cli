@@ -140,6 +140,22 @@ In addition to a project settings file, a project's `.gemini` directory can cont
     }
     ```
 
+- **`proxy`** (object):
+  - **Description:** Configures a proxy server for all outbound requests from the Gemini CLI. This is useful for environments that require all traffic to go through a proxy, or for using services like the Cloudflare AI Gateway.
+  - **Default:** Empty
+  - **Properties:**
+    - **`url`** (string, required): The URL of the proxy server.
+    - **`headers`** (object, optional): A key-value map of custom headers to send with each proxy request. This is useful for authentication with the proxy server.
+  - **Example:**
+    ```json
+    "proxy": {
+      "url": "https://my-proxy.example.com:8080",
+      "headers": {
+        "cf-aig-authorization": "Bearer YOUR_CLOUDFLARE_TOKEN"
+      }
+    }
+    ```
+
 - **`checkpointing`** (object):
   - **Description:** Configures the checkpointing feature, which allows you to save and restore conversation and file states. See the [Checkpointing documentation](../checkpointing.md) for more details.
   - **Default:** `{"enabled": false}`

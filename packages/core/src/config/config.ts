@@ -133,7 +133,10 @@ export interface ConfigParameters {
     enableRecursiveFileSearch?: boolean;
   };
   checkpointing?: boolean;
-  proxy?: string;
+  proxy?: {
+    url?: string;
+    headers?: Record<string, string>;
+  };
   cwd: string;
   fileDiscoveryService?: FileDiscoveryService;
   bugCommand?: BugCommandSettings;
@@ -174,7 +177,10 @@ export class Config {
   private fileDiscoveryService: FileDiscoveryService | null = null;
   private gitService: GitService | undefined = undefined;
   private readonly checkpointing: boolean;
-  private readonly proxy: string | undefined;
+  private readonly proxy: {
+    url?: string;
+    headers?: Record<string, string>;
+  } | undefined;
   private readonly cwd: string;
   private readonly bugCommand: BugCommandSettings | undefined;
   private readonly model: string;
@@ -440,7 +446,7 @@ export class Config {
     return this.checkpointing;
   }
 
-  getProxy(): string | undefined {
+  getProxy(): { url?: string; headers?: Record<string, string> } | undefined {
     return this.proxy;
   }
 

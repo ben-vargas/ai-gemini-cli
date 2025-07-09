@@ -23,6 +23,7 @@ import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
 import { FileDiscoveryService } from '../services/fileDiscoveryService.js';
 import { setSimulate429 } from '../utils/testUtils.js';
 import { tokenLimit } from './tokenLimits.js';
+import { ProxyAgent, setGlobalDispatcher } from 'undici';
 
 // --- Mocks ---
 const mockChatCreateFn = vi.fn();
@@ -30,6 +31,10 @@ const mockGenerateContentFn = vi.fn();
 const mockEmbedContentFn = vi.fn();
 const mockTurnRunFn = vi.fn();
 
+vi.mock('undici', () => ({
+  setGlobalDispatcher: vi.fn(),
+  ProxyAgent: vi.fn(),
+}));
 vi.mock('@google/genai');
 vi.mock('./turn', () => {
   // Define a mock class that has the same shape as the real Turn
@@ -193,6 +198,51 @@ describe('Gemini Client (client.ts)', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  describe('Proxy Configuration', () => {
+    it('should not set a proxy if no proxy config is provided', () => {
+      const MockedConfig = vi.mocked(Config, true);
+      const config = new MockedConfig({} as never);
+      vi.spyOn(config, 'getProxy').mockReturnValue(undefined);
+
+      new GeminiClient(config);
+
+      expect(setGlobalDispatcher).not.toHaveBeenCalled();
+    });
+
+    it('should set a proxy with only a URL if only a URL is provided', () => {
+      const MockedConfig = vi.mocked(Config, true);
+      const config = new MockedConfig({} as never);
+      const proxyConfig = { url: 'http://proxy.example.com' };
+      vi.spyOn(config, 'getProxy').mockReturnValue(proxyConfig);
+
+      new GeminiClient(config);
+
+      expect(setGlobalDispatcher).toHaveBeenCalledTimes(1);
+      expect(ProxyAgent).toHaveBeenCalledWith({
+        uri: proxyConfig.url,
+        headers: undefined,
+      });
+    });
+
+    it('should set a proxy with URL and headers when both are provided', () => {
+      const MockedConfig = vi.mocked(Config, true);
+      const config = new MockedConfig({} as never);
+      const proxyConfig = {
+        url: 'http://proxy.example.com',
+        headers: { 'X-Custom-Header': 'TestValue' },
+      };
+      vi.spyOn(config, 'getProxy').mockReturnValue(proxyConfig);
+
+      new GeminiClient(config);
+
+      expect(setGlobalDispatcher).toHaveBeenCalledTimes(1);
+      expect(ProxyAgent).toHaveBeenCalledWith({
+        uri: proxyConfig.url,
+        headers: proxyConfig.headers,
+      });
+    });
   });
 
   // NOTE: The following tests for startChat were removed due to persistent issues with

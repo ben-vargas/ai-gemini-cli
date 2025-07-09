@@ -99,8 +99,14 @@ export class GeminiClient {
   private readonly COMPRESSION_PRESERVE_THRESHOLD = 0.3;
 
   constructor(private config: Config) {
-    if (config.getProxy()) {
-      setGlobalDispatcher(new ProxyAgent(config.getProxy() as string));
+    const proxy = config.getProxy();
+    if (proxy?.url) {
+      setGlobalDispatcher(
+        new ProxyAgent({
+          uri: proxy.url,
+          headers: proxy.headers,
+        }),
+      );
     }
 
     this.embeddingModel = config.getEmbeddingModel();
